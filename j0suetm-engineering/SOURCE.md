@@ -16,6 +16,7 @@ Keep the middle of any unit pure: data in → transform → decision out. Put si
 - **Understand intent before accepting or rejecting.** When something looks off he asks *"what are you trying to achieve / why this way?"* before deciding. Reciprocate: explain the *why*, and drop the idea if the why turns out weak.
 - **Reasoning beats prior verdicts — for both sides.** He changes his mind when a better argument appears, and expects you to as well. Track the reasoning, not the earlier conclusion. A "no" can become a "yes" the moment the justification is clear.
 - **Push back when you have a real reason.** If asked to remove something that's actually needed, keep it and *say why*. He prefers a correct objection over silent compliance.
+- **⚡ Let the evidence locate the fault before changing anything.** When a fix is proposed that the error contradicts, push back with the specific line that rules it out instead of trying it. A TCP `Connection timed out` is a network drop, not an auth problem — so switching the SSH user can't help, and the log proves it before any credential is sent. Quote the symptom that disqualifies the guess; don't swap components on a hunch when the error already says where the fault is.
 - **⚡ Verify facts against the source; don't guess.** For a column name, an enum value, or an API field, check the real source of truth rather than assuming a plausible name. A guessed identifier is a latent bug.
 - **Make tradeoffs explicit.** Every real decision exchanges something (flexibility/simplicity, speed/clarity, safety/velocity). State the tradeoff — hidden tradeoffs become future surprises.
 
@@ -29,11 +30,14 @@ Keep the middle of any unit pure: data in → transform → decision out. Put si
 
 - **One responsibility per file; group as a package.** Contracts/types in their own file, one implementation per file, a thin entry module as the public surface. Consistent suffix conventions for module roles.
 - **Local reasoning.** Code should be understandable without navigating the whole codebase. Prefer explicit dependencies over hidden ones; pass data over reaching into global state; minimize the files required to understand a feature. A reader should be able to explain a module after reading only that module.
+- **⚡ Avoid module-level globals when they can be inlined or localized.** Operator-lookup tables, single-convention constants, frozen fixtures — they add names to scan before reaching the logic without buying anything. A six-entry op table plus its imports collapses into a `match`; a one-field timestamp convention becomes a literal at its use site, or better, moves into the data the function operates on. Reach for a module global only when the value is genuinely shared config or an expensive thing built once.
+- **⚡ Flatten: small functions and guard clauses over deep nesting.** Watch the indentation depth. A body that nests `for → if → if/try` should split the inner step into a named helper, fold a miss into a sentinel/guard, or become a comprehension. But the cut must *remove* what the reader holds, not relocate it: extract a helper when it kills nesting or names a real step; inline it when it's pure ceremony (a one-use wrapper, a trivial pass-through). The test is cognitive load, not line or name count.
 - **Protocols/interfaces over base classes** for polymorphism. Implementations are **duck-typed** — they satisfy the contract without inheriting machinery. Sharing a *type* is fine; sharing a base class to get behavior usually isn't.
 - **Circular imports are a design smell.** If avoiding one needs import-ordering tricks, the structure is wrong — extract shared contracts to a leaf module.
 - **Follow existing patterns before inventing.** Reuse > Evolve > Create. But "what's already there" still loses to a clearly-better approach — convention is a default, not a cage.
 - **Prefer the existing util/decorator in its canonical home.** Use the project's own mechanism (e.g. a memoize decorator) over hand-rolling cache get/set. When a small helper is shared, put it in the established shared module (e.g. the date utils), not a feature-local file — check there first.
 - **Comment the *why* for non-obvious structure.** If you split or add something for a reason invisible from the code (e.g. a function that exists only to keep failures out of the cache), say why. The shape should explain its own intent.
+- **Document non-obvious helpers, not just the public surface.** What's obvious to you — because you hold the whole flow in your head — can be opaque to someone new to the codebase. Give intent-stating docstrings to helpers that carry domain meaning (e.g. what *anchor* means for a time window: the instant the window is measured back from). State the intent, not a restatement of the code.
 
 ## Error handling
 
@@ -63,6 +67,7 @@ Code is only one phase of a system's life. Consider observability, debugging, de
 - **Mock at the boundary**, exercise the real transformation logic.
 - **Keep concerns in their home.** A test about a shared/infra helper lives with that helper, not smuggled into a feature's test suite.
 - **Explicit per-test setup** over module-level magic.
+- **⚡ Don't pin tests to a fixed point in time when the logic is relative.** Use real `datetime.now()` — relative windows (last 15 minutes, since-event) stay deterministic no matter when the test runs. A frozen `NOW = datetime(2026, …)` constant is a fake reference and a module global that buys nothing here. Pin the clock only when an *absolute* instant is genuinely under test.
 - Respects the project's testing rules: prefer unit-on-the-logic over end-to-end-through-the-edge, exact assertions, parametrize over copy-paste, don't test the framework.
 
 ## Review philosophy

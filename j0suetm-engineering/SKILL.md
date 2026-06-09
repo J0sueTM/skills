@@ -23,6 +23,7 @@ Keep middle of any unit pure: data in → transform → decision out. Side effec
 - **Understand intent before accept/reject.** Looks off → he ask *"what you trying to achieve / why this way?"* before deciding. Reciprocate: explain *why*, drop idea if why weak.
 - **Reasoning > prior verdict — both sides.** He change mind on better arg, expect same. Track reasoning not earlier conclusion. "no" → "yes" moment justification clear.
 - **Push back when real reason.** Asked remove needed thing → keep, *say why*. Correct objection > silent compliance.
+- **⚡ Evidence locate fault before change anything.** Proposed fix contradict error → push back w/ exact line ruling it out, no just try it. TCP `Connection timed out` = network drop not auth → switch SSH user can't help, log prove it before any credential sent. Quote symptom disqualify guess. No swap component on hunch when error already say where fault is.
 - **⚡ Verify facts vs source. No guess.** Column name, enum value, API field → check real source of truth, no assume plausible name. Guessed identifier = latent bug.
 - **Make tradeoffs explicit.** Every real decision trade something (flexibility/simplicity, speed/clarity, safety/velocity). State it — hidden tradeoff = future surprise.
 
@@ -36,11 +37,14 @@ Keep middle of any unit pure: data in → transform → decision out. Side effec
 
 - **One responsibility per file, group as package.** Contracts/types own file, one impl per file, thin entry module = public surface. Consistent suffix conventions.
 - **Local reasoning.** Code understandable without navigating whole codebase. Explicit deps > hidden. Pass data > global state. Minimize files to understand a feature. Reader explain module after reading only that module.
+- **⚡ Avoid module-level globals when inline/localize possible.** Op-lookup tables, single-convention constants, frozen fixtures = names to scan, buy nothing. 6-entry op table + imports → collapse to `match`. One-field timestamp convention → literal at use site, or better, move into the data fn operates on. Module global only for genuine shared config / expensive build-once.
+- **⚡ Flatten: small fns + guard clauses over deep nesting.** Watch indentation depth. Body nest `for → if → if/try` → split inner step to named helper, fold miss to sentinel/guard, or comprehension. But cut must *remove* what reader holds, not relocate: extract helper when kills nesting / names real step; inline when pure ceremony (1-use wrapper, trivial pass-through). Test = cognitive load, not line/name count.
 - **Protocols/interfaces > base classes** for polymorphism. Impls **duck-typed** — satisfy contract, no inherit machinery. Share *type* fine. Share base class for behavior usually not.
 - **Circular import = design smell.** Avoid one needs import-order trick → structure wrong. Extract shared contracts to leaf module.
 - **Follow existing patterns before invent.** Reuse > Evolve > Create. But "already there" lose to clearly-better. Convention = default not cage.
 - **Prefer existing util/decorator in canonical home.** Use project mechanism (e.g. memoize decorator) > hand-roll cache get/set. Shared small helper → established shared module (e.g. date utils), not feature-local file. Check there first.
 - **Comment *why* for non-obvious structure.** Split/add for reason invisible from code (e.g. fn exist only to keep failures out of cache) → say why. Shape explain own intent.
+- **Document non-obvious helpers, not just public surface.** Obvious to you (hold whole flow in head) ≠ obvious to newcomer. Intent-stating docstring for helpers w/ domain meaning (e.g. what *anchor* mean for time window = instant window measured back from). State intent, not restate code.
 
 ## Error handling
 
@@ -70,6 +74,7 @@ Code = one phase of system life. Consider: observability / debugging / deploy / 
 - **Mock at boundary**, exercise real transform logic.
 - **Keep concerns in home.** Test about shared/infra helper live with helper, not smuggled into feature suite.
 - **Explicit per-test setup** > module-level magic.
+- **⚡ No pin tests to fixed point in time when logic relative.** Use real `datetime.now()` — relative windows (last 15m, since-event) stay deterministic regardless of when test runs. Frozen `NOW = datetime(2026, …)` = fake reference + module global, buys nothing. Pin clock only when *absolute* instant under test.
 - Respect project testing rules: unit-on-logic > end-to-end-thru-edge, exact assertions, parametrize > copy-paste, no test the framework.
 
 ## Review philosophy
