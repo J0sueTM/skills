@@ -188,7 +188,8 @@ Signs system can't compress into stable concepts. → revisit boundaries. Proble
 
 - **Model real axis of variation.** Structure around thing that varies + grows, not today's instances. Next case = add unit, not edit everything.
 - **Optimize for change, not prediction.** Design for likely changes. No extension points for hypothetical futures. Generalization *extracted from multiple concrete cases*, not imagined ahead — next impl validate abstraction, not justify it.
-- **Reconcile the two** (sound opposed, aren't): model the axis *already varying in front of you* — concrete 2nd/3rd case appeared. No build axis for case you only *imagine*. Axis-of-variation = recognize real present variation, no hardcode around it. Optimize-for-change = no invent variation that doesn't exist yet. Known axis → structure for it. Imagined axis → wait for concrete case. Ask *"what change we expect?"* never *"what might happen someday?"*
+- **Reconcile the two** (sound opposed, aren't): model the axis *already varying in front of you* — concrete 2nd/3rd case appeared. No build axis for case you only *imagine*. Axis-of-variation = recognize real present variation, no hardcode around it. Optimize-for-change = no invent variation that doesn't exist yet. Known axis → structure for it. Imagined axis → wait for concrete case. Ask *"what change we expect?"* never *"what might happen someday?"* (Concrete: object-attribute path for inputs always dicts = imagined flexibility, delete; add when concrete caller passes objects.)
+- **Push "which one?" choice into data, not evaluator.** Pure transform needs which field/key/threshold → input declares it, no hardcode inside. Engine assume `occurred_at` = coupled to one shape; policy declare `field: occurred_at` = engine stays general, choice explicit + auditable. No assume — contract say. Axis of variation applied to single decision: varying thing = data, not constant buried in logic.
 
 ## Architecture emerges from pressure
 
@@ -197,6 +198,8 @@ No add architecture because feels correct. Add on observed friction: duplication
 ## Business rules = center
 
 Infra exist to support business logic. DB / framework / queue / API = impl details. Business rules survive rewrites. Organize so business logic isolated from infra, deps point inward (toward business rules), not outward.
+
+**Persistence identity ≠ domain concern.** DB-assigned ids, row versions, storage timestamps → out of domain models (domain logic only). Attach identity at persistence boundary (e.g. `DBPolicy` wrapper in service layer pairing domain `Policy` + row id). Domain object constructible + meaningful before ever persisted; baking in `id` forces row to exist for value that doesn't need one, points domain outward at DB instead of inward.
 
 ## Explicit > magical
 

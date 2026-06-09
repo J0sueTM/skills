@@ -181,7 +181,8 @@ These are signs the system cannot be compressed into stable concepts. When this 
 
 - **Model the real axis of variation.** Structure code around the thing that actually varies and will grow, not around the specific instances that happen to exist today. Adding the next case should mean adding a unit, not editing everything.
 - **Optimize for change, not prediction.** Design for the changes you know are likely; avoid building extension points for hypothetical futures. Generalization should be *extracted from multiple concrete cases*, not imagined in advance — the next implementation should validate the abstraction, not be required to justify it.
-- **Reconciling the two** (they sound opposed, they aren't): model the axis that is *already varying in front of you* — the concrete second or third case has appeared. Don't build the axis for a case you only *imagine* might come. "Axis of variation" is about recognizing real, present variation and not hardcoding around it; "optimize for change, not prediction" is about not inventing variation that doesn't exist yet. Known axis → structure for it. Imagined axis → wait for the concrete case. Ask *"what change do we expect?"*, never *"what might happen someday?"*
+- **Reconciling the two** (they sound opposed, they aren't): model the axis that is *already varying in front of you* — the concrete second or third case has appeared. Don't build the axis for a case you only *imagine* might come. "Axis of variation" is about recognizing real, present variation and not hardcoding around it; "optimize for change, not prediction" is about not inventing variation that doesn't exist yet. Known axis → structure for it. Imagined axis → wait for the concrete case. Ask *"what change do we expect?"*, never *"what might happen someday?"* (Concretely: supporting an object-attribute path for inputs that are always dicts is imagined flexibility — delete it; add it when a concrete caller passes objects.)
+- **Push a "which one?" choice into the data, not the evaluator.** When a pure transform needs to know which field, key, or threshold to use, let the input declare it rather than hardcoding it inside. An engine that assumes `occurred_at` is coupled to one shape; a policy that declares `field: occurred_at` keeps the engine general and makes the choice explicit and auditable. Don't assume — let the contract say. This is the axis of variation applied to a single decision: the varying thing becomes data, not a constant buried in the logic.
 
 ## Architecture emerges from pressure
 
@@ -190,6 +191,8 @@ Don't introduce architecture because architecture feels correct. Introduce it wh
 ## Business rules are the center of the system
 
 Infrastructure exists to support business logic. Databases, frameworks, queues, and APIs are all implementation details. Business rules are what survive rewrites. Organize systems so business logic stays isolated from infrastructure concerns, and so dependencies point inward (toward the business rules), not outward.
+
+**Persistence identity is not a domain concern.** Keep DB-assigned ids, row versions, and storage timestamps out of domain models — those carry domain logic only. Attach identity at the persistence boundary (e.g. a `DBPolicy` wrapper in the service layer that pairs a domain `Policy` with its row id). A domain object should be constructible and meaningful before it has ever been persisted; baking in an `id` forces a row to exist for a value that doesn't need one, and points the domain outward at the database instead of inward.
 
 ## Explicit over magical
 
