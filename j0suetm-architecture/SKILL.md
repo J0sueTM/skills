@@ -147,6 +147,14 @@ Visible arch match actual arch. Diagram no lie. Contracts in code correspond to 
 
 Healthy subsystem eventually = noun. People stop talk internals, start talk capability — `Fraud Check / Provider Selection / Charge Creation / Persistence` → `Payment`. Details still exist, just no matter at that level. Ultimate goal of abstraction: moving parts → single concept reasoned independently.
 
+### Boundaries visible in the structure
+
+Pipeline whose stages not visible in code = flat bag of helpers, data path implicit, newcomer can't reconstruct. Naming stages not enough — make boundaries **structural**: each stage = own module (noun); entry point reads as the pipeline (`A → B → C → result`); technicalities (parse, compare, lookup) sit *below* stages, not same level. Read entry point → see flow; read directory → see stages. **Code = primary source of understanding; docs/ordering secondary, reaching for them first = treat symptom.** Reviewer "struggled to follow" = signal about shape, not request for comments.
+
+Stage output = **typed domain value, not loose dict** — contract explicit in type, next stage no guess shape.
+
+Costs files → earns keep under real pressure (team genuinely couldn't follow), not preemptive. Deeper tradeoff: cognitive weight of flexible/configurable design = *price of the flexibility* — pay by making boundaries legible, **not** by removing the flexibility.
+
 ### Names validate abstractions
 
 Every box + every abstraction level = a name. Naming not cosmetic post-design — primary way to validate abstraction actually exist. Responsibility can't be named clear → boundaries probably unclear.

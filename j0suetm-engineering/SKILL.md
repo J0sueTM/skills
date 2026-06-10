@@ -40,11 +40,13 @@ Keep middle of any unit pure: data in → transform → decision out. Side effec
 - **⚡ Avoid module-level globals when inline/localize possible.** Op-lookup tables, single-convention constants, frozen fixtures = names to scan, buy nothing. 6-entry op table + imports → collapse to `match`. One-field timestamp convention → literal at use site, or better, move into the data fn operates on. Module global only for genuine shared config / expensive build-once.
 - **⚡ Flatten: small fns + guard clauses over deep nesting.** Watch indentation depth. Body nest `for → if → if/try` → split inner step to named helper, fold miss to sentinel/guard, or comprehension. But cut must *remove* what reader holds, not relocate: extract helper when kills nesting / names real step; inline when pure ceremony (1-use wrapper, trivial pass-through). Test = cognitive load, not line/name count.
 - **Protocols/interfaces > base classes** for polymorphism. Impls **duck-typed** — satisfy contract, no inherit machinery. Share *type* fine. Share base class for behavior usually not.
-- **Circular import = design smell.** Avoid one needs import-order trick → structure wrong. Extract shared contracts to leaf module.
+- **Circular import = design smell.** Avoid one needs import-order trick → structure wrong. Extract shared contracts to leaf module. Primitive shared by 2 stages → shared leaf so stages no import each other. But cross-module dep reflecting a *real* relationship (filter evaluates conditions over items → genuinely depends on conditions stage) = meaningful, not accidental coupling; no extract just to flatten graph.
 - **Follow existing patterns before invent.** Reuse > Evolve > Create. But "already there" lose to clearly-better. Convention = default not cage.
 - **Prefer existing util/decorator in canonical home.** Use project mechanism (e.g. memoize decorator) > hand-roll cache get/set. Shared small helper → established shared module (e.g. date utils), not feature-local file. Check there first.
 - **Comment *why* for non-obvious structure.** Split/add for reason invisible from code (e.g. fn exist only to keep failures out of cache) → say why. Shape explain own intent.
 - **Document non-obvious helpers, not just public surface.** Obvious to you (hold whole flow in head) ≠ obvious to newcomer. Intent-stating docstring for helpers w/ domain meaning (e.g. what *anchor* mean for time window = instant window measured back from). State intent, not restate code.
+- **⚡ Code = primary source of understanding.** Hard to follow → fix structure/expressiveness *first*; reorder fns / add docs = treat symptom. (Arch side — boundaries structural — → `josue-architecture`.)
+- **No `__all__` / re-export curation.** Import each symbol from module that defines it. Package `__init__` = composition + surface it actually builds (e.g. `apply_policy`, `Decision`), not re-export list of submodule names.
 
 ## Error handling
 
@@ -52,6 +54,7 @@ Keep middle of any unit pure: data in → transform → decision out. Side effec
 - **Graceful degradation = deliberate separate decision** — made one level up where product choice, not baked into low-level helper.
 - **⚡ No cache failures.** Caching front of fallible call → only successes cached, errors propagate to edge that degrades. Else transient failure served whole TTL. Cache the fetch, handle error outside.
 - **Bound external calls** (timeouts) → slow dep no hang system.
+- **Context-specific exception subclasses under shared base.** Prefer `EngineOutputError(EngineError)` > one catch-all → callers catch broad (base) or narrow (step). Base first; specialize per step as steps appear.
 
 ## Ownership of invariants
 

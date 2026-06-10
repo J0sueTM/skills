@@ -140,6 +140,14 @@ The visible architecture should match the actual architecture. A diagram of the 
 
 A healthy subsystem eventually becomes a noun. People stop talking about its internals and start talking about the capability it provides — `Fraud Check / Provider Selection / Charge Creation / Persistence` become `Payment`. The details still exist; they just no longer matter at that level. This is the ultimate goal of abstraction: turning a collection of moving parts into a single concept reasoned about independently.
 
+### Boundaries should be visible in the structure
+
+A pipeline whose stages aren't visible in the code is a flat bag of helpers — the data path is implicit, and a newcomer can't reconstruct it. Naming the stages isn't enough; make the boundaries *structural*. Each stage becomes its own module (a noun); the entry point reads as the pipeline itself (`A → B → C → result`); the technicalities (parsing, comparison, lookups) sit *below* the stages, not at the same level. Reading the entry point shows the flow; reading the directory shows the stages. **The code is the primary source of understanding — docs and ordering are secondary, and reaching for them first treats the symptom.** When a reviewer says "I struggled to follow this", that's a signal about shape, not a request for more comments.
+
+A stage's output should be a **typed domain value, not a loose dict** — the contract is explicit in the type, and the next stage doesn't guess the shape.
+
+This costs files, so it earns its keep under real pressure (the team genuinely couldn't follow the flow), not preemptively. And note the deeper tradeoff: the cognitive weight of a flexible, configurable design is the *price of that flexibility* — pay it by making the boundaries legible, **not** by removing the flexibility that justified the design.
+
 ### Names validate abstractions
 
 Every box, and every level of abstraction, should have a name. Naming is not cosmetic post-design work — it's one of the primary ways to validate whether an abstraction actually exists. If a responsibility cannot be named clearly, its boundaries are probably unclear.

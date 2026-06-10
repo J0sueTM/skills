@@ -33,11 +33,13 @@ Keep the middle of any unit pure: data in → transform → decision out. Put si
 - **⚡ Avoid module-level globals when they can be inlined or localized.** Operator-lookup tables, single-convention constants, frozen fixtures — they add names to scan before reaching the logic without buying anything. A six-entry op table plus its imports collapses into a `match`; a one-field timestamp convention becomes a literal at its use site, or better, moves into the data the function operates on. Reach for a module global only when the value is genuinely shared config or an expensive thing built once.
 - **⚡ Flatten: small functions and guard clauses over deep nesting.** Watch the indentation depth. A body that nests `for → if → if/try` should split the inner step into a named helper, fold a miss into a sentinel/guard, or become a comprehension. But the cut must *remove* what the reader holds, not relocate it: extract a helper when it kills nesting or names a real step; inline it when it's pure ceremony (a one-use wrapper, a trivial pass-through). The test is cognitive load, not line or name count.
 - **Protocols/interfaces over base classes** for polymorphism. Implementations are **duck-typed** — they satisfy the contract without inheriting machinery. Sharing a *type* is fine; sharing a base class to get behavior usually isn't.
-- **Circular imports are a design smell.** If avoiding one needs import-ordering tricks, the structure is wrong — extract shared contracts to a leaf module.
+- **Circular imports are a design smell.** If avoiding one needs import-ordering tricks, the structure is wrong — extract shared contracts to a leaf module. A primitive shared by two stages goes in a shared leaf so the stages don't import each other. But a cross-module dependency that reflects a *real* relationship — a filter that evaluates conditions over items genuinely depends on the conditions stage — is meaningful, not accidental coupling; don't extract it just to flatten the graph.
 - **Follow existing patterns before inventing.** Reuse > Evolve > Create. But "what's already there" still loses to a clearly-better approach — convention is a default, not a cage.
 - **Prefer the existing util/decorator in its canonical home.** Use the project's own mechanism (e.g. a memoize decorator) over hand-rolling cache get/set. When a small helper is shared, put it in the established shared module (e.g. the date utils), not a feature-local file — check there first.
 - **Comment the *why* for non-obvious structure.** If you split or add something for a reason invisible from the code (e.g. a function that exists only to keep failures out of the cache), say why. The shape should explain its own intent.
 - **Document non-obvious helpers, not just the public surface.** What's obvious to you — because you hold the whole flow in your head — can be opaque to someone new to the codebase. Give intent-stating docstrings to helpers that carry domain meaning (e.g. what *anchor* means for a time window: the instant the window is measured back from). State the intent, not a restatement of the code.
+- **⚡ Code is the primary source of understanding.** When code is hard to follow, fix its structure and expressiveness *first* — reordering functions or adding docs is treating the symptom. (The architectural side — making stage boundaries structural — is in `josue-architecture`.)
+- **No `__all__` / re-export curation.** Import each symbol from the module that defines it. A package's `__init__` holds the composition and the surface it actually builds (e.g. `apply_policy`, `Decision`) — not a re-export list of its submodules' names.
 
 ## Error handling
 
@@ -45,6 +47,7 @@ Keep the middle of any unit pure: data in → transform → decision out. Put si
 - **Graceful degradation is a deliberate, separate decision** — made one level up where it's a product choice, not baked into a low-level helper.
 - **⚡ Don't cache failures.** When caching sits in front of a fallible call, structure it so only successes are cached and errors propagate to the edge that degrades — otherwise a transient failure gets served for the whole TTL. Cache the fetch; handle the error outside it.
 - **Bound external calls** (timeouts) so a slow dependency can't hang the system.
+- **Context-specific exception subclasses under a shared base.** Prefer `EngineOutputError(EngineError)` over one catch-all, so callers catch broadly (the base) or narrowly (the step). Introduce the base first; specialize per step as the steps appear.
 
 ## Ownership of invariants
 
