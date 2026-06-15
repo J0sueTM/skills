@@ -170,6 +170,8 @@ Persistence
 
 compress to `Payment`, not `PaymentManagerService`. Strongest names describe **concepts**. Weak names describe impl. Prefer names reflecting business capability / domain concept / responsibility. Avoid names describing where code lives / technical mechanism / generic impl role. Zoom out → names align increasingly with business domain. Reader understand shape of system by reading box names + contracts.
 
+Box — including single module — named for **what it produces**, not mechanism: `speed_alarm_decision` (noun it creates), not `policy_run` (how) / `speed_policy` (thing it consumes). Same test as collapse to `Payment`, applied to one file. Also exposes cohesion: part of module no serve named result (DB writes for decision + alarm) → belongs own box, named for what *it* produces.
+
 ### Smell: inability to compress
 
 Design suspicious when:
